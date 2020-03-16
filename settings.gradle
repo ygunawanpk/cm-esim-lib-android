@@ -1,0 +1,3 @@
+rootProject.name='EsimLibrary'
+include ':app'
+include ':esimlibrary'
