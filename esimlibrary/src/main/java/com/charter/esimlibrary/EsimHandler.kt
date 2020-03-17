@@ -10,13 +10,10 @@ import android.telephony.TelephonyManager
 import android.telephony.euicc.DownloadableSubscription
 import android.telephony.euicc.EuiccManager
 import android.util.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
-class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: (result: String) -> Unit = {}): CoroutineScope {
+class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: (result: String) -> Unit = {}) {
 
     companion object {
         const val ACTION_DOWNLOAD_SUBSCRIPTION = "download_subscription"
@@ -86,14 +83,11 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: (resul
         if (mock) {
             onSuccess("Esim download is successful!")
         } else {
-            launch {
+            GlobalScope.launch {
                 withContext(Dispatchers.IO) {
                     mgr.downloadSubscription(sub, true, callbackIntent)
                 }
             }
-//            thread {
-//                mgr.downloadSubscription(sub, true, callbackIntent)
-//            }
         }
     }
 
@@ -117,7 +111,4 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: (resul
     fun onDestroy() {
         context.unregisterReceiver(receiver)
     }
-
-    override val coroutineContext: CoroutineContext
-        get() = TODO("Not yet implemented")
 }
