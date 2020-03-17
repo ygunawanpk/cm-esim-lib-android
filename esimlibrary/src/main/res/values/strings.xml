@@ -3,4 +3,8 @@
     <string name="euiccmanager_null_check">EuiccManager was null during profile download</string>
     <string name="on_success_response_active_esim">Download is successful and eSim is active</string>
     <string name="on_success_response_inactive_esim">Download is successful, but eSim is inactive due to the SDK does not support this API level</string>
+    <string name="ready_carrier_privileges">Ready with carrier privileges</string>
+    <string name="no_carrier_privileges_detected">No carrier privileges detected</string>
+    <string name="eid_is">Eid is</string>
+    <string name="eid_not_present">EID not present: eSIM not enabled</string>
 </resources>

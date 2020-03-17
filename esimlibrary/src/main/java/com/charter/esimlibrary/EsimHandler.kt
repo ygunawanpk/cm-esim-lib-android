@@ -6,9 +6,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.telephony.TelephonyManager
 import android.telephony.euicc.DownloadableSubscription
 import android.telephony.euicc.EuiccManager
 import android.util.Log
+import android.widget.Toast
 
 class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> Unit = {}) {
 
@@ -53,6 +55,13 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
     }
 
     fun downloadEsim(code: String) {
+        if (!checkCarrierPrivileges()) {
+            Log.d("TAG_ESIM", "Carrier Privileges is FALSE")
+            return
+        }
+
+        checkEuiccInfo()
+
         val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
 
         if (!mgr.isEnabled) {
@@ -66,6 +75,36 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
         val callbackIntent = PendingIntent.getBroadcast(
             context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         mgr.downloadSubscription(sub, true, callbackIntent)
+    }
+
+    // Checks for carrier privileges on the device
+    private fun checkCarrierPrivileges(): Boolean {
+        val telephonyManager =
+            context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        if (telephonyManager != null) {
+            val isCarrier = telephonyManager.hasCarrierPrivileges()
+            return if (isCarrier) {
+                Log.i("TAG_ESIM", context.getString(R.string.ready_carrier_privileges))
+                true
+            } else {
+                Log.i("TAG_ESIM", context.getString(R.string.no_carrier_privileges_detected))
+                false
+            }
+        }
+        return false
+    }
+
+    // Checks the EID of the device
+    private fun checkEuiccInfo() {
+        val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
+        if (mgr.isEnabled) {
+            val eid = mgr.eid
+            Toast.makeText(context, context.getString(R.string.eid_is) + eid, Toast.LENGTH_LONG).show()
+            Log.i("TAG_ESIM", context.getString(R.string.eid_is) + eid)
+        } else {
+            Toast.makeText(context, context.getString(R.string.eid_not_present), Toast.LENGTH_LONG).show()
+            Log.i("TAG_ESIM", context.getString(R.string.eid_not_present))
+        }
     }
 
     fun onDestroy() {
