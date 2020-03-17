@@ -57,13 +57,13 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
         )
     }
 
-    fun downloadEsim(code: String) {
-//        if (!checkCarrierPrivileges()) {
-//            Log.d("TAG_ESIM", "Carrier Privileges is FALSE")
-//            return
-//        }
+    fun downloadEsim(code: String, mock: Boolean) {
+        if (!checkCarrierPrivileges()) {
+            Log.d("TAG_ESIM", "Carrier Privileges is FALSE")
+            return
+        }
 
-//        checkEuiccInfo()
+        checkEuiccInfo()
 
         val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
 
@@ -78,7 +78,12 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
         val callbackIntent = PendingIntent.getBroadcast(
             context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
         )
-        mgr.downloadSubscription(sub, true, callbackIntent)
+
+        if (mock) {
+            onSuccess("Esim download is successful!")
+        } else {
+            mgr.downloadSubscription(sub, true, callbackIntent)
+        }
     }
 
     // Checks for carrier privileges on the device
