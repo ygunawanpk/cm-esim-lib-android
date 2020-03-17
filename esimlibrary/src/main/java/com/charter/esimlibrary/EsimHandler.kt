@@ -10,9 +10,13 @@ import android.telephony.TelephonyManager
 import android.telephony.euicc.DownloadableSubscription
 import android.telephony.euicc.EuiccManager
 import android.util.Log
-import android.widget.Toast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 
-class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> Unit = {}) {
+class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: (result: String) -> Unit = {}): CoroutineScope {
 
     companion object {
         const val ACTION_DOWNLOAD_SUBSCRIPTION = "download_subscription"
@@ -43,7 +47,9 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
                     }
                 }
             } else { /*Download profile was not successful*/
-                onFailure()
+                context?.getString(R.string.on_failure_esim_download)?.let {
+                    onFailure(it)
+                }
                 Log.d(TAG_ESIM, "onReceive: detailedCode: $detailedCode")
             }
         }
@@ -59,11 +65,9 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
 
     fun downloadEsim(code: String, mock: Boolean) {
         if (!checkCarrierPrivileges()) {
-            Log.d("TAG_ESIM", "Carrier Privileges is FALSE")
+            Log.d(TAG_ESIM, "Carrier Privileges is FALSE")
             return
         }
-
-//        checkEuiccInfo()
 
         val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
 
@@ -82,7 +86,14 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
         if (mock) {
             onSuccess("Esim download is successful!")
         } else {
-            mgr.downloadSubscription(sub, true, callbackIntent)
+            launch {
+                withContext(Dispatchers.IO) {
+                    mgr.downloadSubscription(sub, true, callbackIntent)
+                }
+            }
+//            thread {
+//                mgr.downloadSubscription(sub, true, callbackIntent)
+//            }
         }
     }
 
@@ -93,32 +104,20 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
         if (telephonyManager != null) {
             val isCarrier = telephonyManager.hasCarrierPrivileges()
             return if (isCarrier) {
-                Log.i("TAG_ESIM", context.getString(R.string.ready_carrier_privileges))
+                Log.i(TAG_ESIM, context.getString(R.string.ready_carrier_privileges))
                 true
             } else {
-                Log.i("TAG_ESIM", context.getString(R.string.no_carrier_privileges_detected))
+                Log.i(TAG_ESIM, context.getString(R.string.no_carrier_privileges_detected))
                 false
             }
         }
         return false
     }
 
-//    // Checks the EID of the device
-//    private fun checkEuiccInfo() {
-//        val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
-//        if (mgr.isEnabled) {
-//            val eid = mgr.eid
-//            Toast.makeText(context, context.getString(R.string.eid_is) + eid, Toast.LENGTH_LONG)
-//                .show()
-//            Log.i("TAG_ESIM", context.getString(R.string.eid_is) + eid)
-//        } else {
-//            Toast.makeText(context, context.getString(R.string.eid_not_present), Toast.LENGTH_LONG)
-//                .show()
-//            Log.i("TAG_ESIM", context.getString(R.string.eid_not_present))
-//        }
-//    }
-
     fun onDestroy() {
         context.unregisterReceiver(receiver)
     }
+
+    override val coroutineContext: CoroutineContext
+        get() = TODO("Not yet implemented")
 }

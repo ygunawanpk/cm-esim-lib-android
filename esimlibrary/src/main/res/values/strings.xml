@@ -7,4 +7,5 @@
     <string name="no_carrier_privileges_detected">No carrier privileges detected</string>
     <string name="eid_is">Eid is</string>
     <string name="eid_not_present">EID not present: eSIM not enabled</string>
+    <string name="on_failure_esim_download">Esim download failed</string>
 </resources>
