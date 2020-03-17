@@ -63,7 +63,7 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
             return
         }
 
-        checkEuiccInfo()
+//        checkEuiccInfo()
 
         val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
 
@@ -103,20 +103,20 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
         return false
     }
 
-    // Checks the EID of the device
-    private fun checkEuiccInfo() {
-        val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
-        if (mgr.isEnabled) {
-            val eid = mgr.eid
-            Toast.makeText(context, context.getString(R.string.eid_is) + eid, Toast.LENGTH_LONG)
-                .show()
-            Log.i("TAG_ESIM", context.getString(R.string.eid_is) + eid)
-        } else {
-            Toast.makeText(context, context.getString(R.string.eid_not_present), Toast.LENGTH_LONG)
-                .show()
-            Log.i("TAG_ESIM", context.getString(R.string.eid_not_present))
-        }
-    }
+//    // Checks the EID of the device
+//    private fun checkEuiccInfo() {
+//        val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
+//        if (mgr.isEnabled) {
+//            val eid = mgr.eid
+//            Toast.makeText(context, context.getString(R.string.eid_is) + eid, Toast.LENGTH_LONG)
+//                .show()
+//            Log.i("TAG_ESIM", context.getString(R.string.eid_is) + eid)
+//        } else {
+//            Toast.makeText(context, context.getString(R.string.eid_not_present), Toast.LENGTH_LONG)
+//                .show()
+//            Log.i("TAG_ESIM", context.getString(R.string.eid_not_present))
+//        }
+//    }
 
     fun onDestroy() {
         context.unregisterReceiver(receiver)
