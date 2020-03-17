@@ -25,7 +25,8 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
         override fun onReceive(context: Context?, intent: Intent?) {
             val resultCode = resultCode
             val detailedCode = intent?.getIntExtra(
-                EuiccManager.EXTRA_EMBEDDED_SUBSCRIPTION_DETAILED_CODE, 0)
+                EuiccManager.EXTRA_EMBEDDED_SUBSCRIPTION_DETAILED_CODE, 0
+            )
             Log.d(TAG_ESIM, "onReceive: detailedCode: $detailedCode")
             Log.d(TAG_ESIM, "onReceive: resultCode: $resultCode")
 
@@ -50,15 +51,17 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
 
     fun init(context: Context) {
         this.context = context
-        this.context.registerReceiver(receiver, IntentFilter(ACTION_DOWNLOAD_SUBSCRIPTION),
-            null, null)
+        this.context.registerReceiver(
+            receiver, IntentFilter(ACTION_DOWNLOAD_SUBSCRIPTION),
+            null, null
+        )
     }
 
     fun downloadEsim(code: String) {
-        if (!checkCarrierPrivileges()) {
-            Log.d("TAG_ESIM", "Carrier Privileges is FALSE")
-            return
-        }
+//        if (!checkCarrierPrivileges()) {
+//            Log.d("TAG_ESIM", "Carrier Privileges is FALSE")
+//            return
+//        }
 
         checkEuiccInfo()
 
@@ -73,7 +76,8 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
         val sub = DownloadableSubscription.forActivationCode(code)
         val intent = Intent(ACTION_DOWNLOAD_SUBSCRIPTION)
         val callbackIntent = PendingIntent.getBroadcast(
-            context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
+        )
         mgr.downloadSubscription(sub, true, callbackIntent)
     }
 
@@ -99,10 +103,12 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
         val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
         if (mgr.isEnabled) {
             val eid = mgr.eid
-            Toast.makeText(context, context.getString(R.string.eid_is) + eid, Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.eid_is) + eid, Toast.LENGTH_LONG)
+                .show()
             Log.i("TAG_ESIM", context.getString(R.string.eid_is) + eid)
         } else {
-            Toast.makeText(context, context.getString(R.string.eid_not_present), Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.eid_not_present), Toast.LENGTH_LONG)
+                .show()
             Log.i("TAG_ESIM", context.getString(R.string.eid_not_present))
         }
     }
