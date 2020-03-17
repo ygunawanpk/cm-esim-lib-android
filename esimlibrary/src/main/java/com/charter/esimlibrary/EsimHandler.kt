@@ -63,7 +63,7 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: () -> 
 //            return
 //        }
 
-        checkEuiccInfo()
+//        checkEuiccInfo()
 
         val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
 
