@@ -6,21 +6,21 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.os.RemoteException
 import android.telephony.TelephonyManager
 import android.telephony.euicc.DownloadableSubscription
 import android.telephony.euicc.EuiccManager
 import android.util.Log
 import kotlinx.coroutines.*
-import kotlin.coroutines.CoroutineContext
 
-class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: (result: String) -> Unit = {}) {
+class EsimHandler(private val context: Context) {
 
     companion object {
         const val ACTION_DOWNLOAD_SUBSCRIPTION = "download_subscription"
         const val TAG_ESIM = "TAG_ESIM"
     }
 
-    private lateinit var context: Context
+    private lateinit var onEsimDownloadListener: OnEsimDownloadListener
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -35,37 +35,40 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: (resul
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     // eSim is active
                     context?.getString(R.string.on_success_response_active_esim)?.let {
-                        onSuccess(it)
+                        onEsimDownloadListener.onSuccess(it)
                     }
                 } else {
                     // eSim is inactive due to the SDK does not support this API level
                     context?.getString(R.string.on_success_response_inactive_esim)?.let {
-                        onSuccess(it)
+                        onEsimDownloadListener.onSuccess(it)
                     }
                 }
             } else { /*Download profile was not successful*/
                 context?.getString(R.string.on_failure_esim_download)?.let {
-                    onFailure(it)
+                    onEsimDownloadListener.onFailure(it)
                 }
                 Log.d(TAG_ESIM, "onReceive: detailedCode: $detailedCode")
             }
+
+            onDestroy()
         }
     }
 
-    fun init(context: Context) {
-        this.context = context
+    init {
         this.context.registerReceiver(
             receiver, IntentFilter(ACTION_DOWNLOAD_SUBSCRIPTION),
             null, null
         )
     }
 
-    fun downloadEsim(code: String, mock: Boolean) {
+    fun downloadEsim(code: String, listener: OnEsimDownloadListener) {
+
         if (!checkCarrierPrivileges()) {
             Log.d(TAG_ESIM, "Carrier Privileges is FALSE")
             return
         }
 
+        onEsimDownloadListener = listener
         val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
 
         if (!mgr.isEnabled) {
@@ -80,13 +83,14 @@ class EsimHandler(val onSuccess: (result: String) -> Unit, val onFailure: (resul
             context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        if (mock) {
-            onSuccess("Esim download is successful!")
-        } else {
-            GlobalScope.launch {
-                withContext(Dispatchers.IO) {
+        GlobalScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
                     mgr.downloadSubscription(sub, true, callbackIntent)
+                } catch (e: RemoteException) {
+                    Log.e(TAG_ESIM, e.message)
                 }
+
             }
         }
     }
