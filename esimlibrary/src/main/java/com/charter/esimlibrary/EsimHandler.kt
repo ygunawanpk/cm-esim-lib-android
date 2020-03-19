@@ -54,21 +54,17 @@ class EsimHandler(private val context: Context) {
         }
     }
 
-    init {
-        this.context.registerReceiver(
-            receiver, IntentFilter(ACTION_DOWNLOAD_SUBSCRIPTION),
-            null, null
-        )
+    fun init(listener: OnEsimDownloadListener) {
+        this.onEsimDownloadListener = listener
     }
 
-    fun downloadEsim(code: String, listener: OnEsimDownloadListener) {
+    fun downloadEsim(code: String) {
 
         if (!checkCarrierPrivileges()) {
             Log.d(TAG_ESIM, "Carrier Privileges is FALSE")
             return
         }
 
-        onEsimDownloadListener = listener
         val mgr = context.getSystemService(Context.EUICC_SERVICE) as EuiccManager
 
         if (!mgr.isEnabled) {
@@ -81,6 +77,11 @@ class EsimHandler(private val context: Context) {
         val intent = Intent(ACTION_DOWNLOAD_SUBSCRIPTION)
         val callbackIntent = PendingIntent.getBroadcast(
             context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        this.context.registerReceiver(
+            receiver, IntentFilter(ACTION_DOWNLOAD_SUBSCRIPTION),
+            null, null
         )
 
         GlobalScope.launch {
