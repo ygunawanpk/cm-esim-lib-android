@@ -45,7 +45,8 @@ class EsimHandler(private val context: Context) {
                 }
             } else { /*Download profile was not successful*/
                 context?.getString(R.string.on_failure_esim_download)?.let {
-                    onEsimDownloadListener.onFailure(it)
+                    val profile = Profile(123, "Spectrum", "somePassword")
+                    onEsimDownloadListener.onFailure(it, profile)
                 }
                 Log.d(TAG_ESIM, "onReceive: detailedCode: $detailedCode")
             }
@@ -89,28 +90,28 @@ class EsimHandler(private val context: Context) {
                 try {
                     mgr.downloadSubscription(sub, true, callbackIntent)
                 } catch (e: RemoteException) {
-                    Log.e(TAG_ESIM, e.message)
+                    Log.e(TAG_ESIM, e.printStackTrace().toString())
                 }
 
             }
         }
+
     }
 
     // Checks for carrier privileges on the device
     private fun checkCarrierPrivileges(): Boolean {
         val telephonyManager =
             context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        if (telephonyManager != null) {
-            val isCarrier = telephonyManager.hasCarrierPrivileges()
-            return if (isCarrier) {
-                Log.i(TAG_ESIM, context.getString(R.string.ready_carrier_privileges))
-                true
-            } else {
-                Log.i(TAG_ESIM, context.getString(R.string.no_carrier_privileges_detected))
-                false
-            }
+
+        val isCarrier = telephonyManager.hasCarrierPrivileges()
+
+        return if (isCarrier) {
+            Log.i(TAG_ESIM, context.getString(R.string.ready_carrier_privileges))
+            true
+        } else {
+            Log.i(TAG_ESIM, context.getString(R.string.no_carrier_privileges_detected))
+            false
         }
-        return false
     }
 
     fun onDestroy() {
