@@ -13,14 +13,12 @@ import android.telephony.euicc.EuiccManager
 import android.util.Log
 import kotlinx.coroutines.*
 
-class EsimHandler(private val context: Context) {
+object EsimHandler {
 
-    companion object {
-        const val ACTION_DOWNLOAD_SUBSCRIPTION = "download_subscription"
-        const val TAG_ESIM = "TAG_ESIM"
-    }
-
+    private const val ACTION_DOWNLOAD_SUBSCRIPTION = "download_subscription"
+    private const val TAG_ESIM = "TAG_ESIM"
     private lateinit var onEsimDownloadListener: OnEsimDownloadListener
+    private lateinit var context: Context
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -55,7 +53,8 @@ class EsimHandler(private val context: Context) {
         }
     }
 
-    fun init(listener: OnEsimDownloadListener) {
+    fun init(context: Context, listener: OnEsimDownloadListener) {
+        this.context = context
         this.onEsimDownloadListener = listener
     }
 
@@ -114,7 +113,7 @@ class EsimHandler(private val context: Context) {
         }
     }
 
-    fun onDestroy() {
+    private fun onDestroy() {
         context.unregisterReceiver(receiver)
     }
 }
